@@ -103,7 +103,19 @@
   </div>
 
   <div class="feed-container">
+    <!-- Верхняя панель: Баланс и Поддержка -->
+  <div class="top-bar">
+    <div class="balance-badge" onclick="withdraw()">
+      💰 0 ₽ <span style="font-size: 12px; opacity: 0.7; margin-left: 4px;">Вывести</span>
+    </div>
     
+    <!-- Временная кнопка для тестов -->
+    <button onclick="window.location.href='admin.html'" style="background: rgba(255, 60, 60, 0.3); color: #fff; border: 1px solid rgba(255, 60, 60, 0.5); padding: 8px 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">
+      Админ
+    </button>
+
+    <button class="support-btn">Поддержка</button>
+  </div>
     <!-- СЛАЙД 1: Газпромбанк (Интерактивный) -->
     <div class="slide bg-gazprom">
       <div class="offer-header">
