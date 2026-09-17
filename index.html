@@ -2,95 +2,232 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Финансовая витрина</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Лента заданий</title>
   <style>
-    :root { --bg: #f2f4f8; --card-bg: #ffffff; --primary: #007aff; --text-main: #1d1d1f; --text-muted: #86868b; --radius-large: 24px; --radius-small: 16px; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; padding-bottom: 40px; }
-    .header { margin-bottom: 24px; padding: 0 8px; }
-    .header h1 { font-size: 28px; margin: 0 0 8px 0; letter-spacing: -0.5px; }
-    .header p { color: var(--text-muted); margin: 0; font-size: 15px; line-height: 1.4; }
-    .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .bento-card { background: var(--card-bg); border-radius: var(--radius-large); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-    .bento-card.wide { grid-column: span 2; }
-    .tag { background: #e5f0ff; color: var(--primary); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 12px; display: inline-block; margin-bottom: 12px; }
-    .bank-name { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-    .reward { font-size: 15px; font-weight: 600; color: #34c759; margin-bottom: 12px; }
-    .offer-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
-    .action-btn { background: var(--primary); color: white; border: none; border-radius: var(--radius-small); padding: 14px; font-size: 15px; font-weight: 600; width: 100%; cursor: pointer; }
+    /* Сброс стилей и фиксация экрана для TikTok-эффекта */
+    body, html {
+      margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #000; color: #fff; overflow: hidden; overscroll-behavior-y: none;
+    }
+
+    /* Верхняя панель (липкая) */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0; padding: 16px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 10; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    }
+    .balance-badge {
+      background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
+      padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; gap: 6px;
+    }
+    .support-btn {
+      background: none; border: none; color: #fff; font-size: 14px; opacity: 0.8; font-weight: 600;
+    }
+
+    /* Контейнер для свайпов */
+    .feed-container {
+      height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory;
+      scrollbar-width: none; /* Скрываем скроллбар в Firefox */
+    }
+    .feed-container::-webkit-scrollbar { display: none; } /* Скрываем в Chrome/Safari */
+
+    /* Экран одного задания */
+    .slide {
+      height: 100vh; width: 100vw; scroll-snap-align: start; position: relative;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 20px; box-sizing: border-box; padding-bottom: 40px;
+    }
+
+    /* Градиенты для разных банков */
+    .bg-gazprom { background: linear-gradient(135deg, #001f54, #0052D4, #4364F7); }
+    .bg-vtb { background: linear-gradient(135deg, #0a2342, #175676, #4ba3e3); }
+    .bg-alfa { background: linear-gradient(135deg, #4a0000, #a00000, #ff4b2b); }
+
+    /* Информация об оффере */
+    .offer-header { margin-bottom: 24px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    .bank-name { font-size: 38px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -1px; }
+    .reward-sum { font-size: 28px; color: #4ade80; font-weight: 800; margin: 0; }
+    .offer-desc { font-size: 15px; opacity: 0.9; margin-top: 8px; line-height: 1.4; }
+
+    /* Стеклянная панель с шагами */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
+      border-radius: 24px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    /* Трекер шагов */
+    .step { display: flex; align-items: flex-start; margin-bottom: 16px; opacity: 0.4; transition: all 0.3s ease; }
+    .step:last-child { margin-bottom: 0; }
+    .step.active { opacity: 1; transform: scale(1.02); }
+    .step.done { opacity: 0.7; }
+    
+    .step-circle {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff;
+      display: flex; align-items: center; justify-content: center; margin-right: 16px;
+      font-size: 13px; font-weight: bold; flex-shrink: 0; transition: all 0.3s;
+    }
+    .step.active .step-circle { background: #fff; color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+    .step.done .step-circle { background: #4ade80; border-color: #4ade80; color: #000; }
+    .step.done .step-circle::after { content: '✓'; }
+    .step.done .step-number { display: none; }
+
+    .step-text { flex-grow: 1; }
+    .step-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+    .step-sub { font-size: 12px; opacity: 0.8; }
+    .step.done .step-title { text-decoration: line-through; }
+
+    /* Кнопка действия */
+    .action-btn {
+      background: #fff; color: #000; border: none; width: 100%; padding: 18px;
+      border-radius: 16px; font-size: 17px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;
+    }
+    .action-btn:active { transform: scale(0.96); }
+    .action-btn.green { background: #4ade80; color: #000; }
+    
+    /* Скрытый инпут для фото */
+    #photo-upload { display: none; }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>Витрина офферов</h1>
-    <p>Выполняйте простые шаги и забирайте бонусы.</p>
+  <!-- Верхняя панель: Баланс и Поддержка -->
+  <div class="top-bar">
+    <div class="balance-badge" onclick="withdraw()">
+      💰 0 ₽ <span style="font-size: 12px; opacity: 0.7; margin-left: 4px;">Вывести</span>
+    </div>
+    <button class="support-btn">Поддержка</button>
   </div>
 
-  <div class="bento-grid">
-    <div class="bento-card">
-      <div class="tag">Дебетовая</div>
-      <div class="bank-name">Газпромбанк</div>
-      <div class="reward">Бонус: 2 500 ₽</div>
-      <div class="offer-desc">Кэшбэк до 30% на маркетплейсах.</div>
-      <button class="action-btn" onclick="startOffer(this, 'Газпромбанк', 2500)">Оформить</button>
+  <div class="feed-container">
+    
+    <!-- СЛАЙД 1: Газпромбанк (Интерактивный) -->
+    <div class="slide bg-gazprom">
+      <div class="offer-header">
+        <h1 class="bank-name">Газпромбанк</h1>
+        <div class="reward-sum">+ 2 500 ₽</div>
+        <div class="offer-desc">Бесплатная дебетовая карта. Выполните 3 шага, чтобы деньги автоматически зачислились на ваш баланс.</div>
+      </div>
+
+      <div class="glass-panel">
+        <div class="step active" id="step1">
+          <div class="step-circle"><span class="step-number">1</span></div>
+          <div class="step-text">
+            <div class="step-title">Заказать карту</div>
+            <div class="step-sub">По нашей специальной ссылке</div>
+          </div>
+        </div>
+        
+        <div class="step" id="step2">
+          <div class="step-circle"><span class="step-number">2</span></div>
+          <div class="step-text">
+            <div class="step-title">Подтвердить получение</div>
+            <div class="step-sub">Загрузить фото пластика в чат</div>
+          </div>
+        </div>
+        
+        <div class="step" id="step3">
+          <div class="step-circle"><span class="step-number">3</span></div>
+          <div class="step-text">
+            <div class="step-title">Целевое действие</div>
+            <div class="step-sub">Запросить 500₽ на покупку</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="action-btn" id="main-btn" onclick="nextAction()">Заказать карту</button>
+      <input type="file" id="photo-upload" accept="image/*" onchange="handlePhotoUpload()">
     </div>
 
-    <div class="bento-card">
-      <div class="tag">Дебетовая</div>
-      <div class="bank-name">ВТБ</div>
-      <div class="reward">Бонус: 2 000 ₽</div>
-      <div class="offer-desc">Бесплатная карта с плюшками.</div>
-      <button class="action-btn" onclick="startOffer(this, 'ВТБ', 2000)">Оформить</button>
+    <!-- СЛАЙД 2: Альфа-Банк (Для примера свайпа) -->
+    <div class="slide bg-alfa">
+      <div class="offer-header">
+        <h1 class="bank-name">Альфа-Банк</h1>
+        <div class="reward-sum">+ 13 000 ₽</div>
+        <div class="offer-desc">Открытие расчетного счета для ИП или ООО. Высокая выплата за пару встреч.</div>
+      </div>
+      <div class="glass-panel">
+        <div class="step active"><div class="step-circle">1</div><div class="step-title">Оставить заявку</div></div>
+        <div class="step"><div class="step-circle">2</div><div class="step-title">Встреча с курьером</div></div>
+        <div class="step"><div class="step-circle">3</div><div class="step-title">Пополнение счета</div></div>
+      </div>
+      <button class="action-btn">Начать выполнение</button>
     </div>
+
   </div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyeygFa80Qu0cQ1kBMR1KFwl3IN-43FkA-3Px-q74YEwRQHVrr2K14A-lqZ_SA8yuJX/exec'; // <--- Вставь ссылку сюда
     const tg = window.Telegram.WebApp;
-    tg.expand(); 
+    tg.expand();
 
-    async function startOffer(button, offerName, payoutSum) {
-      const originalText = button.innerText;
-      button.innerText = 'Отправка...';
-      button.style.opacity = '0.7';
-      button.disabled = true;
+    // Логика переключения состояний для первого слайда
+    let currentStep = 1;
+    const btn = document.getElementById('main-btn');
+    const uploadInput = document.getElementById('photo-upload');
 
-      const user = tg.initDataUnsafe?.user || { id: 12345678, first_name: 'Новый Лид' };
-      
-      const payload = {
-        action: 'addLead',
-        leadId: user.id,              
-        adminId: '987654321',         
-        name: user.first_name,        
-        offer: offerName,             
-        payout: payoutSum             
-      };
-
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-        const result = await response.json();
-
-        if (result.status === 'success') {
-          button.innerText = 'В процессе';
-          button.style.background = '#34c759'; 
-          tg.showAlert('Заявка принята! Данные отправлены в таблицу.');
-        } else {
-          tg.showAlert('Ошибка: ' + result.message);
-          button.innerText = originalText;
-        }
-      } catch (error) {
-        tg.showAlert('Ошибка соединения.');
-        button.innerText = originalText;
-      } finally {
-        button.style.opacity = '1';
-        button.disabled = false;
+    function nextAction() {
+      if (currentStep === 1) {
+        // Шаг 1 -> Шаг 2
+        // Здесь должен быть редирект на банк: window.open('ССЫЛКА', '_blank');
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step1').classList.add('done');
+        document.getElementById('step2').classList.add('active');
+        
+        btn.innerHTML = '📷 Прикрепить фото карты';
+        currentStep = 2;
+      } 
+      else if (currentStep === 2) {
+        // Вызываем системное окно выбора фото
+        uploadInput.click();
       }
+      else if (currentStep === 3) {
+        // Шаг 3 -> Финал
+        btn.innerHTML = '⏳ Обработка...';
+        setTimeout(() => {
+          document.getElementById('step3').classList.remove('active');
+          document.getElementById('step3').classList.add('done');
+          
+          btn.innerHTML = 'Зачислено на баланс!';
+          btn.classList.add('green');
+          btn.disabled = true;
+          
+          // Обновляем визуальный баланс
+          document.querySelector('.balance-badge').innerHTML = '💰 2 500 ₽ <span style="font-size: 12px; opacity: 0.7; margin-left: 4px;">Вывести</span>';
+          tg.showAlert('Деньги успешно зачислены на ваш внутренний баланс. Вы можете вывести их на карту или LOLZ.');
+        }, 1500);
+      }
+    }
+
+    function handlePhotoUpload() {
+      if (uploadInput.files.length > 0) {
+        btn.innerHTML = '⏳ Проверка фото...';
+        
+        // Имитация загрузки
+        setTimeout(() => {
+          document.getElementById('step2').classList.remove('active');
+          document.getElementById('step2').classList.add('done');
+          document.getElementById('step3').classList.add('active');
+          
+          btn.innerHTML = '💳 Запросить 500₽ на покупку';
+          currentStep = 3;
+        }, 1500);
+      }
+    }
+
+    function withdraw() {
+      tg.showPopup({
+        title: 'Вывод средств',
+        message: 'Куда хотите вывести заработанные деньги?',
+        buttons: [
+          {id: 'sbp', type: 'default', text: 'По номеру телефона (СБП)'},
+          {id: 'lolz', type: 'default', text: 'На маркет LOLZ'},
+          {type: 'cancel'}
+        ]
+      });
     }
   </script>
 </body>
