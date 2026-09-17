@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Дашборд Арбитражника</title>
+  <style>
+    :root { --bg: #f2f4f8; --card-bg: #ffffff; --primary: #007aff; --success: #34c759; --warning: #ff9500; --text-main: #1d1d1f; --text-muted: #86868b; --radius-large: 24px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; padding-bottom: 40px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 8px; }
+    .header h1 { font-size: 26px; margin: 0; }
+    .sync-btn { background: #e5f0ff; color: var(--primary); border: none; border-radius: 50px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+    .bento-card { background: var(--card-bg); border-radius: var(--radius-large); padding: 16px; margin-bottom: 12px; }
+    .leads-header { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .lead-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .lead-name { font-size: 15px; font-weight: 600; display: block; }
+    .lead-offer { font-size: 12px; color: var(--text-muted); }
+    .lead-status { text-align: right; }
+    .lead-sum { font-size: 15px; font-weight: 600; display: block; margin-bottom: 4px; }
+    .status-badge { font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 8px; background: #fff5e5; color: var(--warning); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Аналитика</h1>
+    <button class="sync-btn" onclick="loadData(this)">Обновить</button>
+  </div>
+
+  <div class="bento-card">
+    <div class="leads-header">Воронка лидов (Live)</div>
+    <div id="leads-container">
+      <!-- Лиды будут подгружаться сюда скриптом -->
+      <div style="text-align: center; color: #86868b; font-size: 14px;">Загрузка данных...</div>
+    </div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyeygFa80Qu0cQ1kBMR1KFwl3IN-43FkA-3Px-q74YEwRQHVrr2K14A-lqZ_SA8yuJX/exec'; // <--- Вставь ссылку сюда
+    const ADMIN_ID = '987654321'; // ID, который мы присваиваем при создании лида
+
+    window.onload = () => loadData(document.querySelector('.sync-btn'));
+
+    async function loadData(btn) {
+      const originalText = btn.innerText;
+      btn.innerText = 'Загрузка...';
+      
+      try {
+        // Делаем GET запрос с параметрами action и adminId
+        const response = await fetch(`${API_URL}?action=getLeads&adminId=${ADMIN_ID}`);
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          renderLeads(result.data);
+        } else {
+          alert('Ошибка загрузки: ' + result.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Ошибка соединения с БД.');
+      } finally {
+        btn.innerText = 'Обновлено';
+        setTimeout(() => btn.innerText = originalText, 2000);
+      }
+    }
+
+    function renderLeads(leads) {
+      const container = document.getElementById('leads-container');
+      container.innerHTML = ''; // Очищаем контейнер
+
+      if (leads.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #86868b; font-size: 14px;">Пока нет лидов</div>';
+        return;
+      }
+
+      // Отрисовываем каждый лид
+      leads.forEach(lead => {
+        const row = document.createElement('div');
+        row.className = 'lead-row';
+        row.innerHTML = `
+          <div>
+            <span class="lead-name">${lead.name}</span>
+            <span class="lead-offer">${lead.offer}</span>
+          </div>
+          <div class="lead-status">
+            <span class="lead-sum">${lead.payout} ₽</span>
+            <span class="status-badge">${lead.status}</span>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>

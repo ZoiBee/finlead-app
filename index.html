@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Финансовая витрина</title>
+  <style>
+    :root { --bg: #f2f4f8; --card-bg: #ffffff; --primary: #007aff; --text-main: #1d1d1f; --text-muted: #86868b; --radius-large: 24px; --radius-small: 16px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; padding-bottom: 40px; }
+    .header { margin-bottom: 24px; padding: 0 8px; }
+    .header h1 { font-size: 28px; margin: 0 0 8px 0; letter-spacing: -0.5px; }
+    .header p { color: var(--text-muted); margin: 0; font-size: 15px; line-height: 1.4; }
+    .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .bento-card { background: var(--card-bg); border-radius: var(--radius-large); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+    .bento-card.wide { grid-column: span 2; }
+    .tag { background: #e5f0ff; color: var(--primary); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 12px; display: inline-block; margin-bottom: 12px; }
+    .bank-name { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .reward { font-size: 15px; font-weight: 600; color: #34c759; margin-bottom: 12px; }
+    .offer-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+    .action-btn { background: var(--primary); color: white; border: none; border-radius: var(--radius-small); padding: 14px; font-size: 15px; font-weight: 600; width: 100%; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Витрина офферов</h1>
+    <p>Выполняйте простые шаги и забирайте бонусы.</p>
+  </div>
+
+  <div class="bento-grid">
+    <div class="bento-card">
+      <div class="tag">Дебетовая</div>
+      <div class="bank-name">Газпромбанк</div>
+      <div class="reward">Бонус: 2 500 ₽</div>
+      <div class="offer-desc">Кэшбэк до 30% на маркетплейсах.</div>
+      <button class="action-btn" onclick="startOffer(this, 'Газпромбанк', 2500)">Оформить</button>
+    </div>
+
+    <div class="bento-card">
+      <div class="tag">Дебетовая</div>
+      <div class="bank-name">ВТБ</div>
+      <div class="reward">Бонус: 2 000 ₽</div>
+      <div class="offer-desc">Бесплатная карта с плюшками.</div>
+      <button class="action-btn" onclick="startOffer(this, 'ВТБ', 2000)">Оформить</button>
+    </div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyeygFa80Qu0cQ1kBMR1KFwl3IN-43FkA-3Px-q74YEwRQHVrr2K14A-lqZ_SA8yuJX/exec'; // <--- Вставь ссылку сюда
+    const tg = window.Telegram.WebApp;
+    tg.expand(); 
+
+    async function startOffer(button, offerName, payoutSum) {
+      const originalText = button.innerText;
+      button.innerText = 'Отправка...';
+      button.style.opacity = '0.7';
+      button.disabled = true;
+
+      const user = tg.initDataUnsafe?.user || { id: 12345678, first_name: 'Новый Лид' };
+      
+      const payload = {
+        action: 'addLead',
+        leadId: user.id,              
+        adminId: '987654321',         
+        name: user.first_name,        
+        offer: offerName,             
+        payout: payoutSum             
+      };
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          button.innerText = 'В процессе';
+          button.style.background = '#34c759'; 
+          tg.showAlert('Заявка принята! Данные отправлены в таблицу.');
+        } else {
+          tg.showAlert('Ошибка: ' + result.message);
+          button.innerText = originalText;
+        }
+      } catch (error) {
+        tg.showAlert('Ошибка соединения.');
+        button.innerText = originalText;
+      } finally {
+        button.style.opacity = '1';
+        button.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
