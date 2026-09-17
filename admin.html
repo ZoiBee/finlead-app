@@ -2,94 +2,208 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Дашборд Арбитражника</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin Dashboard</title>
   <style>
-    :root { --bg: #f2f4f8; --card-bg: #ffffff; --primary: #007aff; --success: #34c759; --warning: #ff9500; --text-main: #1d1d1f; --text-muted: #86868b; --radius-large: 24px; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; padding-bottom: 40px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 8px; }
-    .header h1 { font-size: 26px; margin: 0; }
-    .sync-btn { background: #e5f0ff; color: var(--primary); border: none; border-radius: 50px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
-    .bento-card { background: var(--card-bg); border-radius: var(--radius-large); padding: 16px; margin-bottom: 12px; }
-    .leads-header { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
-    .lead-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
-    .lead-name { font-size: 15px; font-weight: 600; display: block; }
+    :root {
+      --bg: #0a0a0a;
+      --panel-bg: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #4ade80;
+      --text: #ffffff;
+      --text-muted: #888888;
+    }
+
+    body {
+      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 80px;
+    }
+
+    /* Навигация (Вкладки) */
+    .tabs {
+      display: flex; gap: 8px; margin-bottom: 24px;
+      background: var(--panel-bg); padding: 6px; border-radius: 16px; border: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1; text-align: center; padding: 10px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; color: var(--text-muted); transition: 0.2s;
+    }
+    .tab.active { background: var(--border); color: var(--text); }
+
+    /* Секции */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Карточки и панели (Glassmorphism) */
+    .glass-card {
+      background: var(--panel-bg); backdrop-filter: blur(20px);
+      border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 16px;
+    }
+    .card-title { font-size: 18px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.5px; }
+
+    /* Метрики */
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .metric-box {
+      background: var(--panel-bg); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px; display: flex; flex-direction: column;
+    }
+    .metric-title { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+    .metric-val { font-size: 24px; font-weight: 800; }
+
+    /* Списки заявок */
+    .lead-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 0; border-bottom: 1px solid var(--border);
+    }
+    .lead-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .lead-info { display: flex; flex-direction: column; gap: 4px; }
+    .lead-name { font-size: 16px; font-weight: 600; }
     .lead-offer { font-size: 12px; color: var(--text-muted); }
-    .lead-status { text-align: right; }
-    .lead-sum { font-size: 15px; font-weight: 600; display: block; margin-bottom: 4px; }
-    .status-badge { font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 8px; background: #fff5e5; color: var(--warning); }
+    
+    /* Кнопки действий */
+    .btn-action {
+      background: transparent; color: var(--accent); border: 1px solid var(--accent);
+      padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .btn-action.primary { background: var(--accent); color: #000; }
+    
+    /* Формы настроек */
+    .input-group { margin-bottom: 16px; }
+    .input-label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .input-field {
+      width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+      color: white; padding: 14px; border-radius: 12px; font-size: 14px; outline: none;
+    }
+    .input-field:focus { border-color: var(--accent); }
+    .save-btn {
+      width: 100%; background: var(--text); color: #000; padding: 14px;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 700; margin-top: 8px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>Аналитика</h1>
-    <button class="sync-btn" onclick="loadData(this)">Обновить</button>
+  <!-- Навигация -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard')">Статистика</div>
+    <div class="tab" onclick="switchTab('requests')">Заявки 🔴</div>
+    <div class="tab" onclick="switchTab('settings')">Настройки</div>
   </div>
 
-  <div class="bento-card">
-    <div class="leads-header">Воронка лидов (Live)</div>
-    <div id="leads-container">
-      <!-- Лиды будут подгружаться сюда скриптом -->
-      <div style="text-align: center; color: #86868b; font-size: 14px;">Загрузка данных...</div>
+  <!-- Секция: Статистика -->
+  <div id="dashboard" class="section active">
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <span class="metric-title">Аппрув (Готово)</span>
+        <span class="metric-val" style="color: var(--accent);">45 000 ₽</span>
+      </div>
+      <div class="metric-box">
+        <span class="metric-title">В холде</span>
+        <span class="metric-val">12 500 ₽</span>
+      </div>
+    </div>
+    
+    <div class="glass-card">
+      <h2 class="card-title">Последние действия</h2>
+      <div style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px 0;">
+        Здесь будет лог конверсий
+      </div>
     </div>
   </div>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyeygFa80Qu0cQ1kBMR1KFwl3IN-43FkA-3Px-q74YEwRQHVrr2K14A-lqZ_SA8yuJX/exec'; // <--- Вставь ссылку сюда
-    const ADMIN_ID = '987654321'; // ID, который мы присваиваем при создании лида
-
-    window.onload = () => loadData(document.querySelector('.sync-btn'));
-
-    async function loadData(btn) {
-      const originalText = btn.innerText;
-      btn.innerText = 'Загрузка...';
+  <!-- Секция: Заявки (Проверка фото и выдача баланса) -->
+  <div id="requests" class="section">
+    <div class="glass-card">
+      <h2 class="card-title">Требуют внимания</h2>
       
-      try {
-        // Делаем GET запрос с параметрами action и adminId
-        const response = await fetch(`${API_URL}?action=getLeads&adminId=${ADMIN_ID}`);
-        const result = await response.json();
+      <!-- Пример: Лид загрузил фото -->
+      <div class="lead-row">
+        <div class="lead-info">
+          <span class="lead-name">Александр В.</span>
+          <span class="lead-offer">Газпромбанк • Фото получено</span>
+        </div>
+        <button class="btn-action primary" onclick="approvePhoto(this)">Одобрить фото</button>
+      </div>
 
-        if (result.status === 'success') {
-          renderLeads(result.data);
-        } else {
-          alert('Ошибка загрузки: ' + result.message);
-        }
-      } catch (error) {
-        console.error(error);
-        alert('Ошибка соединения с БД.');
-      } finally {
-        btn.innerText = 'Обновлено';
-        setTimeout(() => btn.innerText = originalText, 2000);
-      }
+      <!-- Пример: Лид запросил средства на ЦД -->
+      <div class="lead-row">
+        <div class="lead-info">
+          <span class="lead-name">Мария С.</span>
+          <span class="lead-offer">ВТБ • Ждет баланс</span>
+        </div>
+        <button class="btn-action primary" onclick="fundBalance(this)">Выдать 500₽</button>
+      </div>
+      
+      <!-- Пример: Лид в процессе -->
+      <div class="lead-row">
+        <div class="lead-info">
+          <span class="lead-name">Иван К.</span>
+          <span class="lead-offer">Альфа-Банк • Ожидание пластика</span>
+        </div>
+        <span style="font-size: 12px; color: var(--text-muted);">В работе</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Секция: Настройки (Реферальные ссылки) -->
+  <div id="settings" class="section">
+    <div class="glass-card">
+      <h2 class="card-title">Офферы (Партнерские ссылки)</h2>
+      
+      <div class="input-group">
+        <label class="input-label">Газпромбанк (Дебет)</label>
+        <input type="text" class="input-field" placeholder="https://..." id="link-gazprom">
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">Альфа-Банк (РКО)</label>
+        <input type="text" class="input-field" placeholder="https://..." id="link-alfa">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">ВТБ (Дебет)</label>
+        <input type="text" class="input-field" placeholder="https://..." id="link-vtb">
+      </div>
+
+      <button class="save-btn" onclick="saveLinks()">Сохранить ссылки</button>
+    </div>
+  </div>
+
+  <script>
+    // Логика переключения вкладок
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
     }
 
-    function renderLeads(leads) {
-      const container = document.getElementById('leads-container');
-      container.innerHTML = ''; // Очищаем контейнер
+    // Сохранение реферальных ссылок (пока в локальную память для прототипа)
+    function saveLinks() {
+      const btn = event.target;
+      btn.innerText = 'Сохранено ✓';
+      btn.style.background = 'var(--accent)';
+      setTimeout(() => {
+        btn.innerText = 'Сохранить ссылки';
+        btn.style.background = 'var(--text)';
+      }, 2000);
+    }
 
-      if (leads.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #86868b; font-size: 14px;">Пока нет лидов</div>';
-        return;
-      }
+    // Имитация одобрения фото
+    function approvePhoto(btn) {
+      btn.innerText = 'Одобрено';
+      btn.className = 'btn-action';
+      btn.disabled = true;
+      // Здесь будет отправка POST-запроса в гугл-таблицу для смены статуса лида на "Ожидает ЦД"
+    }
 
-      // Отрисовываем каждый лид
-      leads.forEach(lead => {
-        const row = document.createElement('div');
-        row.className = 'lead-row';
-        row.innerHTML = `
-          <div>
-            <span class="lead-name">${lead.name}</span>
-            <span class="lead-offer">${lead.offer}</span>
-          </div>
-          <div class="lead-status">
-            <span class="lead-sum">${lead.payout} ₽</span>
-            <span class="status-badge">${lead.status}</span>
-          </div>
-        `;
-        container.appendChild(row);
-      });
+    // Имитация выдачи баланса
+    function fundBalance(btn) {
+      btn.innerText = 'Отправлено';
+      btn.className = 'btn-action';
+      btn.disabled = true;
+      // Здесь будет отправка запроса на начисление виртуального баланса пользователю
     }
   </script>
 </body>
