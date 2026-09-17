@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Лента заданий</title>
   <style>
-    /* Сброс стилей и фиксация экрана для TikTok-эффекта */
+    /* Сброс стилей и фиксация экрана (TikTok-эффект) */
     body, html {
       margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #000; color: #fff; overflow: hidden; overscroll-behavior-y: none;
     }
 
-    /* Верхняя панель (липкая) */
+    /* Верхняя панель */
     .top-bar {
       position: fixed; top: 0; left: 0; right: 0; padding: 16px 20px;
       display: flex; justify-content: space-between; align-items: center;
@@ -20,18 +20,19 @@
     .balance-badge {
       background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
       padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; gap: 6px; cursor: pointer;
     }
-    .support-btn {
-      background: none; border: none; color: #fff; font-size: 14px; opacity: 0.8; font-weight: 600;
+    .admin-btn {
+      background: rgba(255, 60, 60, 0.3); color: #fff; border: 1px solid rgba(255, 60, 60, 0.5); 
+      padding: 8px 12px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 13px;
     }
+    .support-btn { background: none; border: none; color: #fff; font-size: 14px; opacity: 0.8; font-weight: 600; }
 
     /* Контейнер для свайпов */
     .feed-container {
-      height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory;
-      scrollbar-width: none; /* Скрываем скроллбар в Firefox */
+      height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none;
     }
-    .feed-container::-webkit-scrollbar { display: none; } /* Скрываем в Chrome/Safari */
+    .feed-container::-webkit-scrollbar { display: none; }
 
     /* Экран одного задания */
     .slide {
@@ -40,9 +41,8 @@
       padding: 20px; box-sizing: border-box; padding-bottom: 40px;
     }
 
-    /* Градиенты для разных банков */
+    /* Градиенты банков */
     .bg-gazprom { background: linear-gradient(135deg, #001f54, #0052D4, #4364F7); }
-    .bg-vtb { background: linear-gradient(135deg, #0a2342, #175676, #4ba3e3); }
     .bg-alfa { background: linear-gradient(135deg, #4a0000, #a00000, #ff4b2b); }
 
     /* Информация об оффере */
@@ -87,6 +87,7 @@
     }
     .action-btn:active { transform: scale(0.96); }
     .action-btn.green { background: #4ade80; color: #000; }
+    .action-btn:disabled { opacity: 0.7; cursor: not-allowed; }
     
     /* Скрытый инпут для фото */
     #photo-upload { display: none; }
@@ -94,34 +95,25 @@
 </head>
 <body>
 
-  <!-- Верхняя панель: Баланс и Поддержка -->
-  <div class="top-bar">
-    <div class="balance-badge" onclick="withdraw()">
-      💰 0 ₽ <span style="font-size: 12px; opacity: 0.7; margin-left: 4px;">Вывести</span>
-    </div>
-    <button class="support-btn">Поддержка</button>
-  </div>
-
-  <div class="feed-container">
-    <!-- Верхняя панель: Баланс и Поддержка -->
+  <!-- Верхняя панель -->
   <div class="top-bar">
     <div class="balance-badge" onclick="withdraw()">
       💰 0 ₽ <span style="font-size: 12px; opacity: 0.7; margin-left: 4px;">Вывести</span>
     </div>
     
-    <!-- Временная кнопка для тестов -->
-    <button onclick="window.location.href='admin.html'" style="background: rgba(255, 60, 60, 0.3); color: #fff; border: 1px solid rgba(255, 60, 60, 0.5); padding: 8px 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">
-      Админ
-    </button>
-
+    <!-- Временная кнопка Админа -->
+    <button class="admin-btn" onclick="window.location.href='admin.html'">Админ</button>
     <button class="support-btn">Поддержка</button>
   </div>
-    <!-- СЛАЙД 1: Газпромбанк (Интерактивный) -->
+
+  <div class="feed-container">
+    
+    <!-- СЛАЙД 1: Газпромбанк -->
     <div class="slide bg-gazprom">
       <div class="offer-header">
         <h1 class="bank-name">Газпромбанк</h1>
         <div class="reward-sum">+ 2 500 ₽</div>
-        <div class="offer-desc">Бесплатная дебетовая карта. Выполните 3 шага, чтобы деньги автоматически зачислились на ваш баланс.</div>
+        <div class="offer-desc">Бесплатная дебетовая карта. Выполните 3 шага для зачисления выплаты.</div>
       </div>
 
       <div class="glass-panel">
@@ -137,7 +129,7 @@
           <div class="step-circle"><span class="step-number">2</span></div>
           <div class="step-text">
             <div class="step-title">Подтвердить получение</div>
-            <div class="step-sub">Загрузить фото пластика в чат</div>
+            <div class="step-sub">Загрузить фото пластика</div>
           </div>
         </div>
         
@@ -145,89 +137,130 @@
           <div class="step-circle"><span class="step-number">3</span></div>
           <div class="step-text">
             <div class="step-title">Целевое действие</div>
-            <div class="step-sub">Запросить 500₽ на покупку</div>
+            <div class="step-sub">Запросить средства на покупку</div>
           </div>
         </div>
       </div>
 
-      <button class="action-btn" id="main-btn" onclick="nextAction()">Заказать карту</button>
-      <input type="file" id="photo-upload" accept="image/*" onchange="handlePhotoUpload()">
-    </div>
-
-    <!-- СЛАЙД 2: Альфа-Банк (Для примера свайпа) -->
-    <div class="slide bg-alfa">
-      <div class="offer-header">
-        <h1 class="bank-name">Альфа-Банк</h1>
-        <div class="reward-sum">+ 13 000 ₽</div>
-        <div class="offer-desc">Открытие расчетного счета для ИП или ООО. Высокая выплата за пару встреч.</div>
-      </div>
-      <div class="glass-panel">
-        <div class="step active"><div class="step-circle">1</div><div class="step-title">Оставить заявку</div></div>
-        <div class="step"><div class="step-circle">2</div><div class="step-title">Встреча с курьером</div></div>
-        <div class="step"><div class="step-circle">3</div><div class="step-title">Пополнение счета</div></div>
-      </div>
-      <button class="action-btn">Начать выполнение</button>
+      <button class="action-btn" id="main-btn" onclick="nextAction('Газпромбанк', 2500)">Заказать карту</button>
+      <input type="file" id="photo-upload" accept="image/*" onchange="handlePhotoUpload('Газпромбанк')">
     </div>
 
   </div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
+    // ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ОТ GOOGLE APPS SCRIPT
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyeygFa80Qu0cQ1kBMR1KFwl3IN-43FkA-3Px-q74YEwRQHVrr2K14A-lqZ_SA8yuJX/exec'; 
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Логика переключения состояний для первого слайда
     let currentStep = 1;
     const btn = document.getElementById('main-btn');
     const uploadInput = document.getElementById('photo-upload');
+    const user = tg.initDataUnsafe?.user || { id: 12345678, first_name: 'Тест' };
 
-    function nextAction() {
-      if (currentStep === 1) {
-        // Шаг 1 -> Шаг 2
-        // Здесь должен быть редирект на банк: window.open('ССЫЛКА', '_blank');
-        document.getElementById('step1').classList.remove('active');
-        document.getElementById('step1').classList.add('done');
-        document.getElementById('step2').classList.add('active');
-        
-        btn.innerHTML = '📷 Прикрепить фото карты';
-        currentStep = 2;
-      } 
-      else if (currentStep === 2) {
-        // Вызываем системное окно выбора фото
-        uploadInput.click();
-      }
-      else if (currentStep === 3) {
-        // Шаг 3 -> Финал
-        btn.innerHTML = '⏳ Обработка...';
-        setTimeout(() => {
-          document.getElementById('step3').classList.remove('active');
-          document.getElementById('step3').classList.add('done');
-          
-          btn.innerHTML = 'Зачислено на баланс!';
-          btn.classList.add('green');
-          btn.disabled = true;
-          
-          // Обновляем визуальный баланс
-          document.querySelector('.balance-badge').innerHTML = '💰 2 500 ₽ <span style="font-size: 12px; opacity: 0.7; margin-left: 4px;">Вывести</span>';
-          tg.showAlert('Деньги успешно зачислены на ваш внутренний баланс. Вы можете вывести их на карту или LOLZ.');
-        }, 1500);
+    async function sendRequest(payload) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        return await response.json();
+      } catch (error) {
+        console.error(error);
+        return { status: 'error', message: 'Ошибка соединения' };
       }
     }
 
-    function handlePhotoUpload() {
-      if (uploadInput.files.length > 0) {
-        btn.innerHTML = '⏳ Проверка фото...';
-        
-        // Имитация загрузки
-        setTimeout(() => {
-          document.getElementById('step2').classList.remove('active');
-          document.getElementById('step2').classList.add('done');
-          document.getElementById('step3').classList.add('active');
+    async function nextAction(offerName, payoutSum) {
+      if (currentStep === 1) {
+        btn.innerText = 'Отправка...';
+        btn.disabled = true;
+
+        // Отправляем лида в таблицу
+        const payload = {
+          action: 'addLead',
+          leadId: user.id,
+          adminId: '987654321',
+          name: user.first_name,
+          offer: offerName,
+          payout: payoutSum
+        };
+
+        const result = await sendRequest(payload);
+
+        if (result.status === 'success') {
+          // Имитация редиректа на партнерскую ссылку банка
+          // window.open('ТВОЯ_РЕФ_ССЫЛКА', '_blank');
           
-          btn.innerHTML = '💳 Запросить 500₽ на покупку';
-          currentStep = 3;
-        }, 1500);
+          document.getElementById('step1').classList.remove('active');
+          document.getElementById('step1').classList.add('done');
+          document.getElementById('step2').classList.add('active');
+          
+          btn.innerHTML = '📷 Прикрепить фото карты';
+          btn.disabled = false;
+          currentStep = 2;
+        } else {
+          tg.showAlert('Произошла ошибка: ' + result.message);
+          btn.innerText = 'Заказать карту';
+          btn.disabled = false;
+        }
+      } 
+      else if (currentStep === 2) {
+        // Вызываем нативное окно выбора фото на телефоне
+        uploadInput.click();
       }
+      else if (currentStep === 3) {
+        // Шаг 3: Запрос средств на ЦД
+        btn.innerText = '⏳ Запрос отправлен...';
+        btn.disabled = true;
+        
+        // Тут будет запрос к API для статуса "Ждет 500р"
+        setTimeout(() => {
+          tg.showAlert('Запрос отправлен. Ожидайте поступления средств на баланс для выполнения целевого действия.');
+          btn.innerText = '⏳ Ожидание средств';
+        }, 1000);
+      }
+    }
+
+    // Обработка загруженного фото
+    function handlePhotoUpload(offerName) {
+      if (uploadInput.files.length === 0) return;
+      
+      const file = uploadInput.files[0];
+      const reader = new FileReader();
+      
+      btn.innerHTML = '⏳ Загрузка фото...';
+      btn.disabled = true;
+
+      // Конвертируем фото в формат Base64 (текст) для отправки на сервер
+      reader.onloadend = async function() {
+        const base64String = reader.result;
+        
+        const payload = {
+          action: 'uploadPhoto',
+          leadId: user.id,
+          offer: offerName,
+          photoData: base64String // В скрипте мы будем пересылать это в бота
+        };
+
+        // Отправляем фото
+        const result = await sendRequest(payload);
+
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step2').classList.add('done');
+        document.getElementById('step3').classList.add('active');
+        
+        btn.innerHTML = '💳 Запросить 500₽ на покупку';
+        btn.disabled = false;
+        currentStep = 3;
+        
+        tg.showAlert('Фото успешно загружено и отправлено на проверку!');
+      };
+      
+      reader.readAsDataURL(file);
     }
 
     function withdraw() {
@@ -236,7 +269,7 @@
         message: 'Куда хотите вывести заработанные деньги?',
         buttons: [
           {id: 'sbp', type: 'default', text: 'По номеру телефона (СБП)'},
-          {id: 'lolz', type: 'default', text: 'На маркет LOLZ'},
+          {id: 'crypto', type: 'default', text: 'Кошелек Telegram (USDT/TON)'},
           {type: 'cancel'}
         ]
       });
